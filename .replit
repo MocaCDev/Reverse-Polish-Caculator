@@ -1,0 +1,2 @@
+# RUNNING THE APPLICATION, DO NOT CHANGE
+run = "clang-7 -pthread -lm -o main main.c&&./main"
