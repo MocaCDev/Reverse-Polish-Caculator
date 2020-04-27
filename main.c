@@ -11,7 +11,7 @@
 int stack[100];
 int p; /*
 	Possible TO-DO: Make this static?
-	Possible TO-DO: Assign it defaulty to 0?
+	Possible TO-DO: Assign it defaulty to 0 instead of assigning it in main?
 */
 
 void push(int val) {
@@ -35,7 +35,7 @@ int pop() {
 		-2 works..look at main..here is a brief review of what is going on:
 			we push 1, then 3, then 4.
 			p will then be 4, after pushing 4 onto the stack.
-			So in order to get 3, we need to -2, because if we -1..then we will get index of 3, which is what we had just
+			So in order to get 3, we need to -2, because if we -1..then we will get 4, which is what we had just
 			pushed onto the stack..so subtracting 2 skips 4, which is what we are removing, and gets 3.(I don't know if that makes sense)
 	*/
 
