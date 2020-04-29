@@ -6,7 +6,7 @@ run: main.c
 	./main
 
 main.c:
-	gcc -g   -o main main.c  -lreadline -Wall -Werror
+	gcc -g   -o main main.c  -lreadline -lm -Wall -Werror
 
 debug: main.c
 	gdb main
