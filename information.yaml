@@ -1,25 +1,25 @@
-files:
-	main.c: application
-	.replit: run the application
-	dc.man: ??
-	Licence: GNU General Public License(SEE Licence)
-	Makefile: Run app
+-files:
+main.c: application
+.replit: run the application
+dc.man: ??
+Licence: GNU General Public License(SEE Licence)
+Makefile: Run app
 
-Authors:
-	CodeLongAndPros: Founder/Main Author
-	CTALENT: Contributor/Co-Founder
+-Authors:
+CodeLongAndPros: Founder/Main Author
+CTALENT: Contributor/Co-Founder
 
-Description:
-	Version: 1.0.1
-	Language: C
-	Compiler: GCC
-		Run:
-			with file: .replit
-			setup file: Makefile
-	Side Languages: NONE
-	Title: 
-		Reverse Polish Calculator:
-			About: >
-				Reverse Polish Calculator:
-					Input 2 numbers first, then put the symbol you want
-					Symbols: +,-,%,/,*
+-Description:
+Version: 1.0.1
+Language: C
+Compiler: GCC
+	Run:
+		with file: .replit
+		setup file: Makefile
+Side Languages: NONE
+Title: 
+	Reverse Polish Calculator:
+		About: >
+			Reverse Polish Calculator:
+				Input 2 numbers first, then put the symbol you want
+				Symbols: +,-,%,/,*
