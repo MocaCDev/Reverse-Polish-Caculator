@@ -2,34 +2,34 @@ files:
 	- main.c
 	- .replit
 	- dc.man
-	- Licence:
-		- Copyright
-	- Makefile:
+	Licence:
+		- GNU General Public License(SEE Licence)
+	Makefile:
 		- Run app
 
-- Authors:
-	- CodeLongAndPros:
+Authors:
+	CodeLongAndPros:
 		- Founder/Main Author
-	- CTALENT:
+	CTALENT:
 		- Contributor/Co-Founder
 
-- Description:
-	- Version:
+Description:
+	Version:
 		- 1.0.1
-	- Language:
+	Language:
 		- C
-	- Compiler:
+	Compiler:
 		- GCC
-		- Run:
-			- with file:
+		Run:
+			with file:
 				- .replit
-			- setup file:
+			setup file:
 				- Makefile
-	- Side Languages: 
+	Side Languages: 
 		- NONE
-	- Title: 
-		- Reverse Polish Calculator:
-			- About: >
+	Title: 
+		Reverse Polish Calculator:
+			About: >
 				Reverse Polish Calculator:
 					Input 2 numbers first, then put the symbol you want
 					Symbols: +,-,%,/,*
