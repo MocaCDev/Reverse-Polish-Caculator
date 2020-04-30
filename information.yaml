@@ -25,9 +25,11 @@ setup file: Makefile
 # SIDE LANGUAGE INFORMATION
 Side Languages: NONE
 
-# TITLE/DESCRIPTION INFORMATION
-- Title: 
-- Reverse Polish Calculator:
+# TITLE
+- Title: Reverse Polish Calculator
+
+# PROJECT INFORMATION
+- Reverse Polish Calculator Information:
 About: >
 Reverse Polish Calculator:
 Input 2 numbers first, then put the symbol you want
