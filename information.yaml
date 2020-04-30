@@ -1,35 +1,22 @@
 files:
-	main.c:
-		application
-	.replit:
-		run the application
-	dc.man:
-		??
-	Licence:
-		GNU General Public License(SEE Licence)
-	Makefile:
-		Run app
+	main.c: application
+	.replit: run the application
+	dc.man: ??
+	Licence: GNU General Public License(SEE Licence)
+	Makefile: Run app
 
 Authors:
-	CodeLongAndPros:
-		Founder/Main Author
-	CTALENT:
-		Contributor/Co-Founder
+	CodeLongAndPros: Founder/Main Author
+	CTALENT: Contributor/Co-Founder
 
 Description:
-	Version:
-		1.0.1
-	Language:
-		C
-	Compiler:
-		GCC
+	Version: 1.0.1
+	Language: C
+	Compiler: GCC
 		Run:
-			with file:
-				.replit
-			setup file:
-				Makefile
-	Side Languages: 
-		NONE
+			with file: .replit
+			setup file: Makefile
+	Side Languages: NONE
 	Title: 
 		Reverse Polish Calculator:
 			About: >
