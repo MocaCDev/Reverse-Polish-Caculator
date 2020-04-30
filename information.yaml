@@ -1,7 +1,10 @@
 files:
-	main.c
-	.replit
-	dc.man
+	main.c:
+		application
+	.replit:
+		run the application
+	dc.man:
+		??
 	Licence:
 		GNU General Public License(SEE Licence)
 	Makefile:
