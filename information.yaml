@@ -1,32 +1,32 @@
 files:
-	- main.c
-	- .replit
-	- dc.man
+	main.c
+	.replit
+	dc.man
 	Licence:
-		- GNU General Public License(SEE Licence)
+		GNU General Public License(SEE Licence)
 	Makefile:
-		- Run app
+		Run app
 
 Authors:
 	CodeLongAndPros:
-		- Founder/Main Author
+		Founder/Main Author
 	CTALENT:
-		- Contributor/Co-Founder
+		Contributor/Co-Founder
 
 Description:
 	Version:
-		- 1.0.1
+		1.0.1
 	Language:
-		- C
+		C
 	Compiler:
-		- GCC
+		GCC
 		Run:
 			with file:
-				- .replit
+				.replit
 			setup file:
-				- Makefile
+				Makefile
 	Side Languages: 
-		- NONE
+		NONE
 	Title: 
 		Reverse Polish Calculator:
 			About: >
