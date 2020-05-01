@@ -33,7 +33,7 @@ static int AddSize=100;
 				- We need to fix this!
 		
 		@CodeLongAndPros #1:
-			- I updated allote of the printf statements.
+			- I updated allot of the printf statements.
 			- I put [INPUT] in front of the >> for the readline function
 			- I put [OUTPUT] in front of the printf statements printing the output of the equation
 			- I put [Standard Notation] in front of the printf statement that prints the None-Reversed version
