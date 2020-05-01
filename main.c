@@ -1,154 +1,206 @@
-#include <stdio.h>
+#include <stdio.h> //printf
 //Libreadline 
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <ctype.h> //Black magic
 #include <stdlib.h> //atoi
 #include <math.h> //sqrt
+#include <stdint.h> /* needed to declare MAX_SIZE variable
+	uint8_t, uint16_t, uint32_t, uint64_t
+*/
+#include <limits.h> /* May be needed for declaring MAX_SIZE
+	INT_MIN, INT_MAX, LONG_MIN, LONG_MAX, LLONG_MIN, LLONG_MAX
+	ULONG_MAX, ULLONG_MAX, UINT_MAX
+*/
+#include <stdbool.h> // Needed for IsNegative
 
-#define STACK_SIZE 100
-#define RESET "\033[0m"
+
 /* 
-	@CodeLongAndPros:
-		Added in if-else statement for the "o" operation
-		Removed some comments
-		Added argument and for loop to the parse_args function
-			- We can work on that for loop tomorrow
-		Updated .replit file
-			- instead of echo 'type make run to run'
-				I made it run='clear&&make run'.
-				Clear to clear all previous information..unless we don't want to
-			- Now all we have to do is ctrl-enter :)
+	How can we use this in setting the max size?
+*/
+uint64_t MAX_SIZE = 1844674407370955169;
+static int AddSize=100;
+#define STACK_SIZE 100 // 100 will be the comfy zone
+#define RESET "\033[0m"
+
+/* 
+	Developer Comments:
+		TO-DO:
+			- Need to work on max sizes of STACK_SIZE and the arrays.
+			- There is a problem..I put abs/fabs to make negative values being returned positive
+				- the only reason push and pop return negative values is due to the fact they go above
+					there max value..
+				- We need to fix this!
+		
+		@CodeLongAndPros #1:
+			- I updated allote of the printf statements.
+			- I put [INPUT] in front of the >> for the readline function
+			- I put [OUTPUT] in front of the printf statements printing the output of the equation
+			- I put [Standard Notation] in front of the printf statement that prints the None-Reversed version
+				of the equation
+			- I put [Reverse Notation] in front of the printf statement that prints the Rever Notation version
+				of the equation
+		@CodeLongAndPros #2:
+			- I made the application negative friendly :)
 */
 
-static int stack[STACK_SIZE];
+// float is only 4 bytes, double is 8...I am sure we only need 4 bytes of memory.
+static float stack[STACK_SIZE];
 static int p = 0;
-static int rr = 2; // Does nothing, WIP. @CodeLongAndPros: What was this for?
+static int rr = 2;
 static int Ammount; // used to keep track on how many numbers are inputted
 
 /* 
 	2 arrays are needed, else it would get hellish trying to find
 	the index of the symbol and the two numbers in one array.
 */
-static int Number[STACK_SIZE*5];// holding both numbers..
-static char Symbol[STACK_SIZE][2]; // holding the symbol
+static float Number[STACK_SIZE*80];// holding both numbers..
+static char Symbol[STACK_SIZE*60][2]; // holding the symbol
+static bool IsNegative=false; // false by default
 
 int push(int val) {
-  if (p < STACK_SIZE) {
+  if (p < AddSize) {
     stack[p] = val;
     p++;
-  }
-  return val;
+  } else {
+		// Lets just add another 100?
+		AddSize+=100;
+
+#undef STACK_SIZE
+#define STACK_SIZE AddSize // this will then be 200, 300, 400 and so on
+
+		// Continue with the operation :)
+		stack[p]=val;
+		p++;
+	}
+	if(!(IsNegative)) return abs(val);
+	else return val;
 }
 void dump() {
-	/* 
-		@CodeLongAndPros:
-			Added if statement to check if p is greater than zero.
-			Before this, Value and Index would print and nothing else.
-			Now, if p is not > zero, "NO INDEX STORAGE" will printed.
-
-			Also, I made the printf statements look a bit better. I also added in the symbol being used
-	*/
 	if(p>0){
-		printf("---------------------------\n");
-		printf("\t%s\t%s\t%s\n", "Value", "Index","Symbol");
+		printf("\t---------------------------\n");
+		printf("\t\t%s\t%s\t%s\n", "Value", "Index","Symbol");
 		for( int i = 0; i < p; ++i) {
-			printf("\t%6d\t%5d\t\t%s\n", stack[i], i,Symbol[i+1]);
+			/* 
+				_X means the operation took place, just has no symbol to the equation
+			*/
+			if(!(strcmp(Symbol[i+1],"")==0)) {
+				printf("\t\t%6.0f\t%5d\t\t%s\n", stack[i], i,Symbol[i+1]);
+			}
+			else {
+				printf("\t%6.0f\t%5d\t\t%s\n",stack[i],i,"_X");
+			}
 		}
-		printf("---------------------------\n");
+		printf("\t---------------------------\n");
 	} else {
-		printf("--------------------------------\n");
-		printf("\t\tNO INDEX STORAGE\n");
-		printf("--------------------------------\n");
+		printf("\t--------------------------------\n");
+		printf("\t\t\tNO INDEX STORAGE\n");
+		printf("\t--------------------------------\n");
 	}
 }
 void cs() {
+	/* 
+		Possibility:
+			Just use the cs function when p is at 100...it will reset everything..therefore not having to
+			deal with sizes of arrays etc...
+			What do you think?
+	*/
 	memset(stack,0,sizeof(stack));
+	memset(Number,0,sizeof(Number));
+	// For loop needed for setting symbol to an empty string
+	for(int i = 0; i < p; i++)strcpy(Symbol[i+1],"");
+	p=0; // Shouldn't we reset p as well since everything is being set back to zero?
 }
 int pop() {
-	stack[p]=0;
-
-	return stack[(--p)];
+	// Memory allocation just seems more secure when setting recent index to zero
+	memset(&stack[p],0,sizeof(double));
+	
+	if(!(IsNegative)) return fabs(stack[(--p)]);
+	else return stack[(--p)];
 }
 
-// Prints how it works
 void Menu() {
-	printf("%s%s\n","\033[3;36m\t\t=======  Reverse Polish Calc  =======\n\t\t\t   CodeLongAndPros, CTALENT\033[0;0m\n\n\t\tHOW TO USE:\n\033[3;37m\t\tEnter any number, then press enter\n\t\tAfter your second number, press enter, then give it \n\t\ta symbol(+,-,*,%,/)\n\t\tTYPE \"o\" to see the equation", RESET); //@CodeLongAndPros Thank you!! I forgot to reset it :)
+	printf("%s%s\n","\033[3;36m\t\t=======  Reverse Polish Calc  =======\n\t\t\t   CodeLongAndPros, CTALENT\033[0;0m\n\n\t\tHOW TO USE:\n\033[3;33m\t\tEnter any number, then press enter\n\t\tAfter your second number, press enter, then give it \n\t\ta symbol(+,-,*,%,/)\n\t\tTYPE \"o\" to see the equation\n\t\tType \"f\" to see Index Storage\n\t\tType \"v\" to Square Root a number\n", RESET);
+
 	printf("\n\n%s\n", 
 
    " <\?\?\?\?>  Copyright (C) 2020 <\?\?\?>"
-   " This program comes with ABSOLUTELY NO WARRANTY;"
-   " This is free software, and you are welcome to redistribute it "
-   " under certain conditions;"
-   " For details, invoke with --about\n"
+   " \n\tThis program comes with ABSOLUTELY NO WARRANTY;"
+   " \n\tThis is free software, and you are welcome to redistribute it "
+   " \n\tunder certain conditions;"
+   " \n\tFor details, invoke with --about\n"
 	);
 }
 
 void parse_args(int ammount,char** args) {
-	// @CodeLongAndPros:
-	// Added for loop to loop through each CLA(Command Line Argument)
-	if(ammount>0) {
-		for(int i = 0; i < ammount; i++) {
-			if(!(strcmp(args[i],"./main")==0)) {
-				if (strcmp(args[i], "--about")) {
-					/*printf("\n%s\n", 
+	if(ammount>1) {
+		// Updated: Starts at 1
+		for(int i = 1; i < ammount; i++) {
+			if(strcmp(args[i], "--about")) {
+				// To-Do: Finish this printf statement
+				/*printf("\n%s\n", 
 					"
 
 			THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION."
 					)*/
-				}
 			}
 		}
 	}
 }
 
 int main(int argc, char** argv) {
+
 	Menu();
 	parse_args(argc,argv);
-	//printf("Ammount of arguments: %d\n",argc);
 
  	while (1!=2) {
-   	char* input = readline("\033[5;32m>> \033[0m"  ); //Get user input without dealing with getch();
+   	char* input = readline("\033[5;32m[INPUT]>> \033[0m"  ); //Get user input without dealing with getch();
 		if (*input == EOF)  break;
-		if (strcmp(input, "+") == 0) { // Command is 'add'
+		if (strcmp(input, "+") == 0) {
 
-			printf("%d\n", push(pop() + pop()));
+			printf("\n\t[OUTPUT]>> %d\n\n", push(pop() + pop()));
 			strcpy(Symbol[p],input);
 			Ammount=0;
+			IsNegative=false;
 
 		}
 		else if (strcmp(input, "-") == 0) {
 
 			int temp = pop();
-			printf("%d\n", push(pop() - temp));
+			printf("\n\t[OUTPUT]>> %d\n\n", push(pop() - temp));
 
 			strcpy(Symbol[p],input);
 			Ammount=0;
+			IsNegative=false;
 
 		}
 		else if (strcmp(input, "*") == 0) {
 
-			printf("%d\n", push(pop() * pop()));
+			printf("\n\t[OUTPUT]>> %d\n\n", push(pop() * pop()));
 			strcpy(Symbol[p],input);
 			Ammount=0;
+			IsNegative=false;
 
 		} else if (strcmp(input, "/") == 0) {
 
 			int temp = pop();
-			printf("%d\n", push(pop() / temp));
+			printf("\n\t[OUTPUT]>> %d\n\n", push(pop() / temp));
 
 			strcpy(Symbol[p],input);
 			Ammount=0;
+			IsNegative=false;
 
 		} else if (strcmp(input, "v") == 0) { // I want dc comatiblaity. Look at dc.man
-
-			printf("%d\n", push(sqrt(pop())));
+			printf("\n\t[OUTPUT]>> %d\n\n", push(sqrt(pop())));
+			strcpy(Symbol[p],"_S"); // _S as in SquareRoot
+			Ammount=0;
+			IsNegative=false;
 
 		} else if(strcmp(input, "%") == 0) {
 
 			int temp = pop();
 
-			printf("%d\n", push( pop() % temp));
+			printf("\n\t[OUTPUT]>> %d\n\n", push( pop() % temp));
 			strcpy(Symbol[p],input);
 
 		} else if (strcmp(input, "d") == 0) {
@@ -161,7 +213,7 @@ int main(int argc, char** argv) {
 
 		} else if (strcmp(input, "p") == 0) {
 
-			printf("%d\n", push(pop()));
+			printf("\n\t[OUTPUT]>> %d\n\n", push(pop()));
 
 		} else if (strcmp(input, "cs") == 0) {
 
@@ -169,50 +221,41 @@ int main(int argc, char** argv) {
 
 		} else if (strcmp(input, "n") == 0) {
 
-			printf("%d\n", pop());
+			printf("\n\t[OUTPUT]>> %d\n\n", pop());
 
 		} else if(strcmp(input,"o") == 0) {
 			
 			if(strcmp(Symbol[p],"")==0) {
 				printf("No equations have been found :/\n");
 			} else {
-				printf("Standard Notation: %d %s %d\n",Number[p],Symbol[p],Number[p-1]);
-				printf("Reverse Notation: %d %d %s\n",Number[p],Number[p-1],Symbol[p]);
+				printf("\n\t[Standard Notation]>> %.0f %s %.0f",Number[p],Symbol[p],Number[p-1]);
+				printf("\n\t[Reverse Notation]>> %.0f %.0f %s\n\n",Number[p],Number[p-1],Symbol[p]);
 			}
 
 		} else if ( input[0] == 's' ) {
 			if (strlen(input) > 2 && input[1] == 'r' && isdigit(input[2]) ) {
-				rr = atoi(&input[2]);
+				rr = atof(&input[2]);
 			}
 		}
 		else if (*input != EOF && isdigit(*input)) {
-
-			/*
-				@CodeLongAndPros:
-					- If Ammount is greater than 2, we won't push any further.
-					- I noticed that if we put in 5 numbers it would just get the last 2 numbers of the 5.
-					- So..here I made it to where it only gets the first 2 numbers to make it more accurate(also so we don't take up too much array storage)
-					- This will change if we improve the applications to take in more than 2 numbers to each equation.
-						- If we do this, we will need to increase the stack by allot..probably at least 1000...
-
-			*/
+			ALG:
 			++Ammount;
 
 			if(Ammount<=2) {
 				Number[p]=atoi(input);
-				// push(atoi(input));
 				push(Number[p]);
 			}
 
 		} else {
-			/* 
-				@CodeLongAndPros:
-					I just put a printf statement and prettied it up a bit
-			*/
-			printf("\n\t\033[4;3;31mCannot create equation with -> %s\n\tNo integer and or symbol found :/\n\n%s",input,RESET);
+			// It could be a negative
+			if(strlen(input)>1&&input[0]=='-'&&isdigit(input[1])) {
+				IsNegative=true;
+				goto ALG;
+			} else {
+				printf("\n\t\033[4;3;31mError: Unexpected -> %s <- in input%s\n\n", input, RESET);
+			}
 		}
 
-		// @CodeLongAndPros: What does this do ?
 		if (strlen(input) > 0) add_history(input);
 	}
 }

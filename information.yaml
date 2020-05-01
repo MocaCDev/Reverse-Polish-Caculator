@@ -2,8 +2,7 @@
 -files:
 main.c: application
 .replit: run the application
-dc.man: ??
-Licence: GNU General Public License(SEE Licence)
+License: GNU General Public License(SEE Licence)
 Makefile: Run app
 
 # AUTHOR INFORMATION
