@@ -1,9 +1,10 @@
 # FILE INFORMATION
 -files:
 main.c: application
+CLA.c: Dealing with CLA's
 .replit: run the application
 License: GNU General Public License(SEE Licence)
-Makefile: Run app
+Makefile: Build system config. make run to compile amd build/
 
 # AUTHOR INFORMATION
 -Authors:

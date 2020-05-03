@@ -1,0 +1,1 @@
+void parse_args(int ammount, char **args);
