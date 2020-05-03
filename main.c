@@ -59,11 +59,10 @@ static char *Symbol; // holding the symbol
 static bool IsNegative=false; // false by default
 
 void cs() {
-	// Since stack and Number are pointers, we can just free them!
+	// They are all pointers..we can now just use "free" on them
 	free(stack);
 	free(Number);
-	// For loop needed for setting symbol to an empty string
-	for(int i = 0; i < p; i++) strcpy(&Symbol[i+1],"");
+	free(Symbol);
 	p=0;
 }
 int push(int val) {
