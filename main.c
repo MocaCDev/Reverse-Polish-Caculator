@@ -45,7 +45,6 @@ char* INPUT = "\033[5;32m[INPUT] >> \033[0m";
 				- I updated Makefile to compile CLA into the application as well
 */
 
-static float *stack;
 static int p = 0;
 static int rr = 2;
 static int Ammount; // used to keep track on how many numbers are inputted
@@ -56,6 +55,7 @@ static int Ammount; // used to keep track on how many numbers are inputted
 */
 static float *Number;// holding both numbers..
 static char *Symbol; // holding the symbol
+static float *stack;
 static bool IsNegative=false; // false by default
 
 void cs() {
@@ -79,7 +79,7 @@ int push(int val) {
 		// Re-Allocating memory for arrays since STACK_SIZE has been updated
 		stack = realloc(stack, sizeof(float)*STACK_SIZE);
 		Number = realloc(Number, sizeof(float)*STACK_SIZE);
-		Symbol = realloc(Symbol, sizeof(char*)*STACK_SIZE);
+		Symbol = (char *) realloc(Symbol, sizeof(char*)*STACK_SIZE);
 
 		// Continue with the operation :)
 		stack[p]=val;
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
 	// Allocating memory for arrays
 	stack = calloc(STACK_SIZE,sizeof(float));
 	Number = calloc(STACK_SIZE*2/*holding 2 numbers each time the array is updated*/,sizeof(float));
-	Symbol=(char *)calloc(STACK_SIZE,sizeof(char*));
+	Symbol=(char *) calloc(STACK_SIZE,sizeof(char*));
 
 	parse_args(argc,argv);
 	Menu();
