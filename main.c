@@ -54,15 +54,16 @@ static int Ammount; // used to keep track on how many numbers are inputted
 	2 arrays are needed, else it would be impossible trying to find
 	the index of the symbol and the two numbers in one array.
 */
-static float Number[STACK_SIZE*80];// holding both numbers..
-static char Symbol[STACK_SIZE*60][2]; // holding the symbol
+static float *Number;// holding both numbers..
+static char *Symbol; // holding the symbol
 static bool IsNegative=false; // false by default
 
 void cs() {
-	memset(&stack,0,sizeof(stack));
-	memset(Number,0,sizeof(Number));
+	// Since stack and Number are pointers, we can just free them!
+	free(stack);
+	free(Number);
 	// For loop needed for setting symbol to an empty string
-	for(int i = 0; i < p; i++) strcpy(Symbol[i+1],"");
+	for(int i = 0; i < p; i++) strcpy(&Symbol[i+1],"");
 	p=0;
 }
 int push(int val) {
@@ -76,8 +77,10 @@ int push(int val) {
 #undef STACK_SIZE
 #define STACK_SIZE AddSize // this will then be 200, 300, 400 and so on
 
-		// Re-Allocating memory for stack since STACK_SIZE has been updated
+		// Re-Allocating memory for arrays since STACK_SIZE has been updated
 		stack = realloc(stack, sizeof(float)*STACK_SIZE);
+		Number = realloc(Number, sizeof(float)*STACK_SIZE);
+		Symbol = realloc(Symbol, sizeof(char*)*STACK_SIZE);
 
 		// Continue with the operation :)
 		stack[p]=val;
@@ -105,8 +108,8 @@ void dump() {
 			/* 
 				_X means the operation took place, just has no symbol to the equation
 			*/
-			if(!(strcmp(Symbol[i+1],"")==0)) {
-				printf("\t\t%6.0f\t%5d\t\t%s\n", stack[i], i,Symbol[i+1]);
+			if(!(strcmp(&Symbol[i+1],"")==0)) {
+				printf("\t\t%6.0f\t%5d\t\t%s\n", stack[i], i,&Symbol[i+1]);
 			}
 			else {
 				printf("\t\t%6.0f\t%5d\t\t%s\n",stack[i],i,"_X");
@@ -149,8 +152,10 @@ void Menu() {
 
 int main(int argc, char** argv) {
 
-	// Allocating memory for stack
+	// Allocating memory for arrays
 	stack = calloc(STACK_SIZE,sizeof(float));
+	Number = calloc(STACK_SIZE*2/*holding 2 numbers each time the array is updated*/,sizeof(float));
+	Symbol=(char *)calloc(STACK_SIZE,sizeof(char*));
 
 	parse_args(argc,argv);
 	Menu();
@@ -161,7 +166,7 @@ int main(int argc, char** argv) {
 			if (strcmp(input, "+") == 0) {
 
 				printf(OUTPUT, push(pop() + pop()));
-				strcpy(Symbol[p],input);
+				strcpy(&Symbol[p],input);
 				Ammount=0;
 				IsNegative=false;
 
@@ -171,7 +176,7 @@ int main(int argc, char** argv) {
 				int temp = pop();
 				printf(OUTPUT, push(pop() - temp));
 
-				strcpy(Symbol[p],input);
+				strcpy(&Symbol[p],input);
 				Ammount=0;
 				IsNegative=false;
 
@@ -179,7 +184,7 @@ int main(int argc, char** argv) {
 			else if (strcmp(input, "*") == 0) {
 
 				printf(OUTPUT, push(pop() * pop()));
-				strcpy(Symbol[p],input);
+				strcpy(&Symbol[p],input);
 				Ammount=0;
 				IsNegative=false;
 
@@ -188,14 +193,14 @@ int main(int argc, char** argv) {
 				int temp = pop();
 				printf(OUTPUT, push(pop() / temp));
 
-				strcpy(Symbol[p],input);
+				strcpy(&Symbol[p],input);
 				Ammount=0;
 				IsNegative=false;
 
 			} else if (strcmp(input, "v") == 0) { // I want dc comatiblaity. Look at dc.man
 				printf(OUTPUT, push(sqrt(pop())));
 
-				strcpy(Symbol[p],"_S"); // _S as in SquareRoot
+				strcpy(&Symbol[p],"_S"); // _S as in SquareRoot
 				Ammount=0;
 				IsNegative=false;
 
@@ -204,7 +209,7 @@ int main(int argc, char** argv) {
 				int temp = pop();
 
 				printf(OUTPUT, push( pop() % temp));
-				strcpy(Symbol[p],input);
+				strcpy(&Symbol[p],input);
 
 			} else if (strcmp(input, "d") == 0) {
 				
@@ -230,11 +235,11 @@ int main(int argc, char** argv) {
 
 			} else if(strcmp(input,"o") == 0) {
 				
-				if(strcmp(Symbol[p],"")==0) {
+				if(strcmp(&Symbol[p],"")==0) {
 					printf("No equations have been found :/\n");
 				} else {
-					printf("\n\t[Standard Notation] >> %.0f %s %.0f",Number[p],Symbol[p],Number[p-1]);
-					printf("\n\t[Reverse Notation ] >> %.0f %.0f %s\n\n",Number[p],Number[p-1],Symbol[p]);
+					printf("\n\t[Standard Notation] >> %.0f %s %.0f",Number[p],&Symbol[p],Number[p-1]);
+					printf("\n\t[Reverse Notation ] >> %.0f %.0f %s\n\n",Number[p],Number[p-1],&Symbol[p]);
 				}
 
 			} else if ( input[0] == 's' ) {
