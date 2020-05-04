@@ -1,0 +1,9 @@
+Package: rpc
+Version: 1.01
+Section: custom
+Priority: optional
+Architecture: x86-64
+Essential: no
+Installed-Size: 4608000
+Maintainer: repl.it/\@CodeLongAndPros
+Description: Postfix caculator

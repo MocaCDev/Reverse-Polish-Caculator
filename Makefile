@@ -12,7 +12,9 @@ main.c:
 debug: main.c
 	gdb main.o
 dist: main.c
-	mv main.o pc
+	mv main.o rpc.o
+	cp rpc.o rpc/usr/bin/rpc
+	dpkg-deb --build rpc
 clean:
 	rm *.o
 	
