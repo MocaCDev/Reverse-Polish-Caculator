@@ -15,7 +15,7 @@
 #include <stdbool.h> // Needed for IsNegative
 #include "CLA.h"
 
-// Changed to 16-bit integer to use memory more wisely
+// Changed to 16-bit integer to use memory more wisely. That is 2 bytes worth of the stack array, Number array and Symbol array..
 /* 
 	*this is for STACK_SIZE and the index size of 
 	*the arrays...don't get this mixed up with 
@@ -29,22 +29,6 @@ static int AddSize=100;
 char* OUTPUT = "\n\t[OUTPUT]>> %d\n\n";
 char* INPUT = "\033[5;32m[INPUT] >> \033[0m";
 
-/* 
-	Developer Comments:
-		TO-DO:
-			- Work on making outputted numbers, when there is an int overflow, more accurate.
-				- IDEA:
-					- add a CLA(Command Line Argument) that will allow the user to set a max integer size?
-					- or do you want to hard code a way for the value to be above a 64-bit number?
-			- Work on making MAX_SIZE usable: DONE...I think
-
-		@CodeLongAndPros:
-			I made the stack a pointer to an allocated ammount of memory(of an array).
-			I gave it it's size in main, and re-allocate the memory when we re-assign STACK_SIZE in the push function.
-			I created a file named CLA.c that will deal with all of the command line arguments
-				- I updated Makefile to compile CLA into the application as well
-*/
-
 static int p = 0;
 static int rr = 2;
 static int Ammount; // used to keep track on how many numbers are inputted
@@ -56,7 +40,55 @@ static int Ammount; // used to keep track on how many numbers are inputted
 static float *Number;// holding both numbers..
 static char *Symbol; // holding the symbol
 static float *stack;
+
+static bool IsMulti=false;// false by default..we are assuming there are just 2 numbers
+static float *MultiEqStack; // Used for macro below
+static int MES=0; // used for MultiEqStack
+#define MultiEquation(ammount,symbol)\
+double TOTAL;\
+if(ammount>2) {\
+	IsMulti=true;\
+	for(int i = 0; i < ammount; i++) {\
+		if(strcmp(symbol,"+")==0) {\
+			TOTAL+=Number[i];\
+		} else if(strcmp(symbol,"-")==0) {\
+			if(i<1) {TOTAL=Number[i];}\
+			TOTAL-=Number[i+1];\
+		}/*@CodeLongAndPros: Should we try to make it to where they can input multiple numbers and divide/multiply?*/\
+		memset(&Number[i],0,sizeof(float));\
+	}\
+	MultiEqStack[MES]=TOTAL;\
+	TOTAL=0;\
+	if(MES>=AddSize) {\
+		/*Chances are..MultiEqStack will be used more than stack so we will just re-allocate all memory*/\
+		AddSize+=100;\
+		stack=realloc(stack,sizeof(float)*AddSize);\
+		Number=realloc(Number,sizeof(float)*AddSize);\
+		Symbol=(char *)realloc(Symbol,sizeof(char*)*AddSize);\
+		MultiEqStack=realloc(MultiEqStack,sizeof(float)*AddSize);\
+	}\
+	/*DO NOT EDIT, THIS IS TO MAKE SURE THE TWO STACKS DON'T RUN INTO EACH OTHER*/\
+	p-=ammount;\
+}
+
+/* 
+	Developer Comments:
+		TO-DO:
+			- Work on making outputted numbers, when there is an int overflow, more accurate.
+				- IDEA:
+					- add a CLA(Command Line Argument) that will allow the user to set a max integer size?
+					- or do you want to hard code a way for the value to be above a 64-bit number?
+			- Work on making MAX_SIZE usable: DONE...I think
+			- Ran into the following when running the application:
+				[INPUT] >> 50
+				[INPUT] >> 60
+				[INPUT] >> -
+				- The above gave a overflow error(given in the push function)...
+				- We need to work on the if statement which generates this printf statement..
+*/
+
 static bool IsNegative=false; // false by default
+static bool RUN=true; // true by default until the STACK_SIZE is above MAX_SIZE
 
 void cs() {
 	// They are all pointers..we can now just use "free" on them
@@ -67,23 +99,30 @@ void cs() {
 }
 int push(int val) {
   if (p < AddSize) {
-    stack[p] = val;
-    p++;
+		if(!(IsMulti)) {
+			stack[p] = val;
+			p++;
+		}
   } else {
 		// Lets just add another 100?
-		AddSize+=100;
+		if(!(AddSize>MAX_SIZE)) {
+			AddSize+=100;
 
 #undef STACK_SIZE
 #define STACK_SIZE AddSize // this will then be 200, 300, 400 and so on
 
-		// Re-Allocating memory for arrays since STACK_SIZE has been updated
-		stack = realloc(stack, sizeof(float)*STACK_SIZE);
-		Number = realloc(Number, sizeof(float)*STACK_SIZE);
-		Symbol = (char *) realloc(Symbol, sizeof(char*)*STACK_SIZE);
+			// Re-Allocating memory for arrays since STACK_SIZE has been updated
+			stack = realloc(stack, sizeof(float)*STACK_SIZE);
+			Number = realloc(Number, sizeof(float)*STACK_SIZE);
+			Symbol = (char *) realloc(Symbol, sizeof(char*)*STACK_SIZE);
 
-		// Continue with the operation :)
-		stack[p]=val;
-		p++;
+			// Continue with the operation :)
+			stack[p]=val;
+			p++;
+		} else {
+			fprintf(stderr,"\033[0;31mError: Stack is full.\nSTACK_SIZE:%d",STACK_SIZE);
+			RUN=false;
+		}
 	}
 
 	// Temporary fix..
@@ -100,25 +139,33 @@ int push(int val) {
 	}
 }
 void dump() {
-	if(p>0){
-		printf("\t---------------------------\n");
-		printf("\t\t%s\t%s\t%s\n", "Value", "Index","Symbol");
-		for( int i = 0; i < p; ++i) {
-			/* 
-				_X means the operation took place, just has no symbol to the equation
-			*/
-			if(!(strcmp(&Symbol[i+1],"")==0)) {
-				printf("\t\t%6.0f\t%5d\t\t%s\n", stack[i], i,&Symbol[i+1]);
-			}
-			else {
-				printf("\t\t%6.0f\t%5d\t\t%s\n",stack[i],i,"_X");
-			}
+	if(IsMulti) {
+		printf("\n\tMULTI EQUATION\n\t----------------------\n\tValue\tIndex\tSymbol\n");
+		for(int i = 0; i < MES; i++) {
+			printf("\t%.0f\t\t%d\t%s\n",MultiEqStack[i],i,&Symbol[i-1]);
 		}
-		printf("\t---------------------------\n");
-	} else {
-		printf("\t--------------------------------\n");
-		printf("\t\t\tStack Empty\n");
-		printf("\t--------------------------------\n");
+		printf("\t----------------------\n\n");
+	} else if(!(IsMulti)) {
+		if(p>0){
+			printf("\t---------------------------\n");
+			printf("\t\t%s\t%s\t%s\n", "Value", "Index","Symbol");
+			for( int i = 0; i < p; ++i) {
+				/* 
+					_X means the operation took place, just has no symbol to the equation
+				*/
+				if(!(strcmp(&Symbol[i+2],"")==0)) {
+					printf("\t\t%6.0f\t%5d\t\t%s\n", stack[i], i,&Symbol[i+1]);
+					}
+				else {
+					printf("\t\t%6.0f\t%5d\t\t%s\n",stack[i],i,"_X");
+				}
+			}
+			printf("\t---------------------------\n");
+		} else {
+			printf("\t--------------------------------\n");
+			printf("\t\t\tStack Empty\n");
+			printf("\t--------------------------------\n");
+		}
 	}
 }
 int pop() {
@@ -137,7 +184,7 @@ int pop() {
 }
 
 void Menu() {
-	printf("%s%s\n","\033[3;36m\t\t=======  Reverse Polish Calc  =======\n\t\t\t   CodeLongAndPros, CTALENT\033[0;0m\n\n\t\tHOW TO USE:\n\033[3;33m\t\tEnter any number, then press enter\n\t\tAfter your second number, press enter, then give it \n\t\ta symbol(+,-,*,%,/)\n\t\tTYPE \"o\" to see the equation\n\t\tType \"f\" to see Index Storage\n\t\tType \"v\" to Square Root a number\n\t\tAdditonal commands:\n\t\tp: Print the top value off the stack, without popping \n\t\tit off\n\t\t", RESET);
+	printf("%s%s\n","\033[3;36m\t\t=======  Reverse Polish Calc  =======\n\t\t\t   CodeLongAndPros, CTALENT\033[0;0m\n\n\t\tHOW TO USE:\n\033[3;33m\t\tEnter any number, then press enter\n\t\tAfter your second number, press enter, then give it \n\t\ta symbol(+,-,*,%,/)\n\t\tTYPE \"o\" to see the equation\n\t\tType \"f\" to see Index Storage\n\t\tType \"v\" to Square Root a number\n\t\tAdditonal commands:\n\t\tp: Print the top value off the stack, without popping \n\t\tit off\n\n\t\t\033[0mWant a faster way to get just a fast and easy\n\t\tequation out of the way?\n\t\t\033[3;33mUse: ./main.o -fe x1 x2 symbol:\n\t\tx1 and x2 are both going to be the numbers going into the equation.\n\t\tThe symbol will be one of the following:\n\t\t+,-,%,/ and mult.\n\t\tCommand Example: ./main.o -fe 50 50 mult, would return value of \n\t\t50 * 50", RESET);
 
 	printf("\n\n%s\n", 
 
@@ -155,45 +202,64 @@ int main(int argc, char** argv) {
 	stack = calloc(STACK_SIZE,sizeof(float));
 	Number = calloc(STACK_SIZE*2/*holding 2 numbers each time the array is updated*/,sizeof(float));
 	Symbol=(char *) calloc(STACK_SIZE,sizeof(char*));
+	MultiEqStack = calloc(STACK_SIZE,sizeof(float));
 
 	parse_args(argc,argv);
 	Menu();
 	
- 	while (true) {
+ 	while (RUN) {
 		char* input = readline(INPUT); //Get user input without dealing with getch();
 			if (*input == EOF)  break;
 			if (strcmp(input, "+") == 0) {
-
-				printf(OUTPUT, push(pop() + pop()));
-				strcpy(&Symbol[p],input);
+			
+				MultiEquation(Ammount, "+");
 				Ammount=0;
+
+				if(!(IsMulti)) {
+					printf(OUTPUT, push(pop() + pop()));
+					strcpy(&Symbol[p],input);
+				} else {MES++;dump();IsMulti=false;}
 				IsNegative=false;
 
 			}
 			else if (strcmp(input, "-") == 0) {
-
-				int temp = pop();
-				printf(OUTPUT, push(pop() - temp));
-
-				strcpy(&Symbol[p],input);
+				
+				MultiEquation(Ammount, "-");
 				Ammount=0;
+
+				if(!(IsMulti)) {
+					int temp = pop();
+					printf(OUTPUT, push(pop() - temp));
+					strcpy(&Symbol[p],input);
+				} else {MES++;dump();IsMulti=false;}
 				IsNegative=false;
 
 			}
 			else if (strcmp(input, "*") == 0) {
+				/*
+					I need help with this...
+				*/
 
-				printf(OUTPUT, push(pop() * pop()));
-				strcpy(&Symbol[p],input);
+				MultiEquation(Ammount, "*");
 				Ammount=0;
+
+				if(!(IsMulti)) {
+					printf(OUTPUT, push(pop() * pop()));
+					strcpy(&Symbol[p],input);
+				} else {MES++;dump();IsMulti=false;}
 				IsNegative=false;
 
 			} else if (strcmp(input, "/") == 0) {
-
-				int temp = pop();
-				printf(OUTPUT, push(pop() / temp));
-
-				strcpy(&Symbol[p],input);
+				
+				MultiEquation(Ammount,"/");
 				Ammount=0;
+
+				if(!(IsMulti)) {
+					int temp = pop();
+					printf(OUTPUT, push(pop() / temp));
+
+					strcpy(&Symbol[p],input);
+				} else {MES++;dump();IsMulti=false;}
 				IsNegative=false;
 
 			} else if (strcmp(input, "v") == 0) { // I want dc comatiblaity. Look at dc.man
@@ -211,7 +277,7 @@ int main(int argc, char** argv) {
 				strcpy(&Symbol[p],input);
 
 			} else if (strcmp(input, "d") == 0) {
-				
+			
 				double tmp = pop();
 				push(tmp);
 				push(tmp);
@@ -221,8 +287,8 @@ int main(int argc, char** argv) {
 				dump();
 
 			} else if (strcmp(input, "p") == 0) {
-
-				printf(OUTPUT, push(pop()));
+				
+				if(!(IsMulti)) printf(OUTPUT, push(pop()));
 
 			} else if (strcmp(input, "cs") == 0) {
 
@@ -237,8 +303,10 @@ int main(int argc, char** argv) {
 				if(strcmp(&Symbol[p],"")==0) {
 					printf("No equations have been found :/\n");
 				} else {
-					printf("\n\t[Standard Notation] >> %.0f %s %.0f",Number[p],&Symbol[p],Number[p-1]);
-					printf("\n\t[Reverse Notation ] >> %.0f %.0f %s\n\n",Number[p],Number[p-1],&Symbol[p]);
+					if(!(IsMulti)) {
+						printf("\n\t[Standard Notation] >> %.0f %s %.0f",Number[p],&Symbol[p],Number[p-1]);
+						printf("\n\t[Reverse Notation ] >> %.0f %.0f %s\n\n",Number[p],Number[p-1],&Symbol[p]);
+					}
 				}
 
 			} else if ( input[0] == 's' ) {
@@ -246,15 +314,24 @@ int main(int argc, char** argv) {
 					rr = atof(&input[2]);
 				}
 			}
-			else if (*input != EOF && isdigit(*input)) {
+			else if (*input != EOF && isdigit(*input)!=0) {
 				ALG:
+				/*
+					* We're just gonna go off of Ammount..using the index of p got confusing when getting into
+					the MultiEqStack array..
+					*/
+				if(IsMulti) {
+					Number[Ammount]=atoi(input);
+				} else {
+					Number[Ammount]=atoi(input);
+					push(Number[Ammount]);
+				}
 				++Ammount;
-
+				/*
 				if(Ammount<=2) {
 					Number[p]=atoi(input);
 					push(Number[p]);
-				}
-
+				}*/
 			} else {
 				// It could be a negative
 				if(strlen(input)>1 && input[0]=='-'&& isdigit(input[1])) {
