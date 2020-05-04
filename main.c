@@ -95,6 +95,7 @@ void cs() {
 	free(stack);
 	free(Number);
 	free(Symbol);
+	free(MultiEqStack);
 	p=0;
 }
 int push(int val) {
