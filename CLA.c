@@ -1,21 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-/* 
-	@CodeLongAndPros:
-		This file is created to single handedly handle CLA's.
-*/
-/******************************
-*
-*  Are we using Linux options, bsd. or GNU?
-*  We need standards here.
 
-@CodeLongAndPros: It is up to you...I really don't know :)
-
-Well, I want GNU, ie: --extract --file --verbose
-@CodeLongAndPros: Ok, lets do that then!
-
-******************************/
 // Easier way to do this?
 char* F_ARG_OUT = "\n%d %s %d = %d\nReverse Polish Notation: %d %d %s\n";
 
@@ -71,11 +57,11 @@ void parse_args(int ammount,char** args) {
 							if(!(
 								strcmp(args[i+3],"+")==0||
 								strcmp(args[i+3],"-")==0||
-								strcmp(args[i+3],"mult")==0||
+								strcmp(args[i+3],"m")==0||
 								strcmp(args[i+3],"%")==0||
 								strcmp(args[i+3],"/")==0
 								)) {
-									fprintf(stderr,"\033[0;31mError: 3rd argument of -f %d %d ->%s<- is an invalid symbol",num1,num2,args[i+3]);
+									fprintf(stderr,"\033[0;31mError: 3rd argument of -f %d %d ->%s<- is an invalid symbol\n",num1,num2,args[i+3]);
 									exit(EXIT_FAILURE);
 								}
 							F_ARG_PRINT(num1, num2, args[i+3]);
@@ -92,7 +78,7 @@ void parse_args(int ammount,char** args) {
 			}
       else if(strcmp(args[i], "--help") == 0) {
         printf(
-          "Usage: rpc [-fe] [fe-args] "
+          "Usage: rpc [--fe] [fe-args] "
           "Simple reverse polish caculator. For info on postfix notations, run man dc\n"
           "\t-q\t\t\t\tQuiet, suppress help messages\n"
           "\t-v (Default)\tVerbose, add user help messages\n"

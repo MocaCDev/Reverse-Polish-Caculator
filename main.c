@@ -15,12 +15,22 @@
 #include <stdbool.h> // Needed for IsNegative
 #include "CLA.h"
 
-// Changed to 16-bit integer to use memory more wisely. That is 2 bytes worth of the stack array, Number array and Symbol array..
+/***********************************************************
+*
+* I fixed the -10 bug.
+*
+* When should we release this to repl.it?
+*
+* @CodeLongAndPros:
+*  - Are we gonna make it to where the user can multiply mutliple numbers? Or just leave it to adding and subtracting multiple number...
+***********************************************************/
+
+
 /* 
-	*this is for STACK_SIZE and the index size of 
-	*the arrays...don't get this mixed up with 
-	*the max size of the integer being HELD!!!
-	*/
+ * this is for STACK_SIZE and the index size of 
+ * the arrays...don't get this mixed up with 
+ * the max size of the integer being HELD!!!
+ */
 uint16_t MAX_SIZE=65536-1;
 static int AddSize=100;
 #define STACK_SIZE 100 // 100 will be the comfy zone
@@ -29,6 +39,11 @@ static int AddSize=100;
 char* OUTPUT = "\n\t[OUTPUT]>> %d\n\n";
 char* INPUT = "\033[5;32m[INPUT] >> \033[0m";
 
+/* 
+	To-Do:
+		- p is used as the index of many things in the application.
+		- We should add a new variable to work with the other arrays so we don't run into any possible errors with p and with getting certain indexes of arrays.
+*/
 static int p = 0;
 static int rr = 2;
 static int Ammount; // used to keep track on how many numbers are inputted
@@ -38,12 +53,14 @@ static int Ammount; // used to keep track on how many numbers are inputted
 	the index of the symbol and the two numbers in one array.
 */
 static float *Number;// holding both numbers..
-static char *Symbol; // holding the symbol
+static char *SymbolA; // holding the symbol for 2 number equations
+static char *SymbolB; // holding symbol for 2+ number equations
 static float *stack;
 
 static bool IsMulti=false;// false by default..we are assuming there are just 2 numbers
 static float *MultiEqStack; // Used for macro below
 static int MES=0; // used for MultiEqStack
+
 #define MultiEquation(ammount,symbol)\
 double TOTAL;\
 if(ammount>2) {\
@@ -64,7 +81,8 @@ if(ammount>2) {\
 		AddSize+=100;\
 		stack=realloc(stack,sizeof(float)*AddSize);\
 		Number=realloc(Number,sizeof(float)*AddSize);\
-		Symbol=(char *)realloc(Symbol,sizeof(char*)*AddSize);\
+		SymbolA=(char *)realloc(SymbolA,sizeof(char*)*AddSize);\
+		SymbolB=(char *)realloc(SymbolB,sizeof(char*)*STACK_SIZE);\
 		MultiEqStack=realloc(MultiEqStack,sizeof(float)*AddSize);\
 	}\
 	/*DO NOT EDIT, THIS IS TO MAKE SURE THE TWO STACKS DON'T RUN INTO EACH OTHER*/\
@@ -72,19 +90,7 @@ if(ammount>2) {\
 }
 
 /* 
-	Developer Comments:
-		TO-DO:
-			- Work on making outputted numbers, when there is an int overflow, more accurate.
-				- IDEA:
-					- add a CLA(Command Line Argument) that will allow the user to set a max integer size?
-					- or do you want to hard code a way for the value to be above a 64-bit number?
-			- Work on making MAX_SIZE usable: DONE...I think
-			- Ran into the following when running the application:
-				[INPUT] >> 50
-				[INPUT] >> 60
-				[INPUT] >> -
-				- The above gave a overflow error(given in the push function)...
-				- We need to work on the if statement which generates this printf statement..
+	
 */
 
 static bool IsNegative=false; // false by default
@@ -94,15 +100,15 @@ void cs() {
 	// They are all pointers..we can now just use "free" on them
 	free(stack);
 	free(Number);
-	free(Symbol);
+	free(SymbolA);
+	free(SymbolB);
 	free(MultiEqStack);
 	p=0;
 }
 int push(int val) {
   if (p < AddSize) {
 		if(!(IsMulti)) {
-			stack[p] = val;
-			p++;
+			stack[p++] = val;
 		}
   } else {
 		// Lets just add another 100?
@@ -115,7 +121,8 @@ int push(int val) {
 			// Re-Allocating memory for arrays since STACK_SIZE has been updated
 			stack = realloc(stack, sizeof(float)*STACK_SIZE);
 			Number = realloc(Number, sizeof(float)*STACK_SIZE);
-			Symbol = (char *) realloc(Symbol, sizeof(char*)*STACK_SIZE);
+			SymbolA = (char *) realloc(SymbolA, sizeof(char*)*STACK_SIZE);
+			SymbolB = (char *) realloc(SymbolB, sizeof(char*)*STACK_SIZE);
 
 			// Continue with the operation :)
 			stack[p]=val;
@@ -127,10 +134,10 @@ int push(int val) {
 	}
 
 	// Temporary fix..
-	if(stack[p-1]>0&&!(IsNegative)) {
+	if(stack[p-1] > 0 && !(IsNegative)) {
 		return abs(val);
 	} else {
-		if(stack[p-1]<0&&!(IsNegative)) {
+		if(stack[p-1] < 0 && (IsNegative)) {
 			cs();
 			printf("\n\t\033[0;31mCalculator overflow error:\n\tThat integer value was above 64-bits...\n\tCalculator reset success%s\n",RESET);
 			return 0;
@@ -143,7 +150,7 @@ void dump() {
 	if(IsMulti) {
 		printf("\n\tMULTI EQUATION\n\t----------------------\n\tValue\tIndex\tSymbol\n");
 		for(int i = 0; i < MES; i++) {
-			printf("\t%.0f\t\t%d\t%s\n",MultiEqStack[i],i,&Symbol[i-1]);
+			printf("\t%.0f\t\t%d\t\t%c\n",MultiEqStack[i],i,SymbolB[i]);
 		}
 		printf("\t----------------------\n\n");
 	} else if(!(IsMulti)) {
@@ -154,8 +161,8 @@ void dump() {
 				/* 
 					_X means the operation took place, just has no symbol to the equation
 				*/
-				if(!(strcmp(&Symbol[i+2],"")==0)) {
-					printf("\t\t%6.0f\t%5d\t\t%s\n", stack[i], i,&Symbol[i+1]);
+				if(!(strcmp(&SymbolA[i+1],"")==0)) {
+					printf("\t\t%6.0f\t%5d\t\t%c\n", stack[i], i,SymbolA[i+1]);
 					}
 				else {
 					printf("\t\t%6.0f\t%5d\t\t%s\n",stack[i],i,"_X");
@@ -202,7 +209,8 @@ int main(int argc, char** argv) {
 	// Allocating memory for arrays
 	stack = calloc(STACK_SIZE,sizeof(float));
 	Number = calloc(STACK_SIZE*2/*holding 2 numbers each time the array is updated*/,sizeof(float));
-	Symbol=(char *) calloc(STACK_SIZE,sizeof(char*));
+	SymbolA = (char *) calloc(STACK_SIZE,sizeof(char*));
+	SymbolB = (char *) calloc(STACK_SIZE,sizeof(char*));
 	MultiEqStack = calloc(STACK_SIZE,sizeof(float));
 
 	parse_args(argc,argv);
@@ -218,8 +226,12 @@ int main(int argc, char** argv) {
 
 				if(!(IsMulti)) {
 					printf(OUTPUT, push(pop() + pop()));
-					strcpy(&Symbol[p],input);
-				} else {MES++;dump();IsMulti=false;}
+					strcpy(&SymbolA[p],input);
+				} else {
+					strcpy(&SymbolB[MES],input);
+					MES++;dump();
+					IsMulti=false;
+				}
 				IsNegative=false;
 
 			}
@@ -227,13 +239,19 @@ int main(int argc, char** argv) {
 				
 				MultiEquation(Ammount, "-");
 				Ammount=0;
-
 				if(!(IsMulti)) {
 					int temp = pop();
-					printf(OUTPUT, push(pop() - temp));
-					strcpy(&Symbol[p],input);
-				} else {MES++;dump();IsMulti=false;}
-				IsNegative=false;
+          int t2 = pop();
+//          IsNegative = (abs(temp) != temp) && (abs(t2) != t2);
+
+					printf(OUTPUT, push(t2 - temp));
+					strcpy(&SymbolA[p],input);
+				} else {
+					strcpy(&SymbolB[MES],input);
+          MES++;
+          dump();
+          IsMulti=false;
+        }
 
 			}
 			else if (strcmp(input, "*") == 0) {
@@ -246,11 +264,17 @@ int main(int argc, char** argv) {
 
 				if(!(IsMulti)) {
 					printf(OUTPUT, push(pop() * pop()));
-					strcpy(&Symbol[p],input);
-				} else {MES++;dump();IsMulti=false;}
+					strcpy(&SymbolA[p],input);
+				} else {
+					strcpy(&SymbolB[MES],input);
+					MES++;
+					dump();
+					IsMulti=false;
+					}
 				IsNegative=false;
 
-			} else if (strcmp(input, "/") == 0) {
+			}
+       else if (strcmp(input, "/") == 0) {
 				
 				MultiEquation(Ammount,"/");
 				Ammount=0;
@@ -258,15 +282,19 @@ int main(int argc, char** argv) {
 				if(!(IsMulti)) {
 					int temp = pop();
 					printf(OUTPUT, push(pop() / temp));
-
-					strcpy(&Symbol[p],input);
-				} else {MES++;dump();IsMulti=false;}
+					strcpy(&SymbolA[p],input);
+				} else {
+					strcpy(&SymbolB[MES],input);
+					MES++;
+					dump();
+					IsMulti=false;
+				}
 				IsNegative=false;
 
 			} else if (strcmp(input, "v") == 0) { // I want dc comatiblaity. Look at dc.man
 				printf(OUTPUT, push(sqrt(pop())));
 
-				strcpy(&Symbol[p],"_S"); // _S as in SquareRoot
+				strcpy(&SymbolA[p],"_S"); // _S as in SquareRoot
 				Ammount=0;
 				IsNegative=false;
 
@@ -275,7 +303,7 @@ int main(int argc, char** argv) {
 				int temp = pop();
 
 				printf(OUTPUT, push( pop() % temp));
-				strcpy(&Symbol[p],input);
+				strcpy(&SymbolA[p],input);
 
 			} else if (strcmp(input, "d") == 0) {
 			
@@ -301,12 +329,12 @@ int main(int argc, char** argv) {
 
 			} else if(strcmp(input,"o") == 0) {
 				
-				if(strcmp(&Symbol[p],"")==0) {
+				if(strcmp(&SymbolA[p],"")==0) {
 					printf("No equations have been found :/\n");
 				} else {
 					if(!(IsMulti)) {
-						printf("\n\t[Standard Notation] >> %.0f %s %.0f",Number[p],&Symbol[p],Number[p-1]);
-						printf("\n\t[Reverse Notation ] >> %.0f %.0f %s\n\n",Number[p],Number[p-1],&Symbol[p]);
+						printf("\n\t[Standard Notation] >> %.0f %s %.0f",Number[p],&SymbolA[p],Number[p-1]);
+						printf("\n\t[Reverse Notation ] >> %.0f %.0f %s\n\n",Number[p],Number[p-1],&SymbolA[p]);
 					}
 				}
 
