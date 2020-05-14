@@ -314,7 +314,7 @@ int main(int argc, char** argv) {
 				if(!(WasMulti)) {
 					printf(OUTPUT,push(pop()));
 				} else {
-					printf("\n\n\t[OUTPUT]>> %.0f\n\n",MultiEqStack[MES-1]);
+					printf("\n\t[OUTPUT]>> %.0f\n\n",MultiEqStack[MES-1]);
 					WasMulti=false;
 				}
 
