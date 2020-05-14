@@ -327,6 +327,7 @@ int main(int argc, char** argv) {
 				printf("\n\t[OUTPUT]>> %d\n\n", pop());
 
 			} else if(strcmp(input, "fe")==0) {
+
 				if(MES>0) {
 					IsMulti=true;
 					dump();
@@ -334,6 +335,7 @@ int main(int argc, char** argv) {
 				} else {
 					dump();
 				}
+				
 			} else if(strcmp(input,"o") == 0) {
 				
 				if(strcmp(&SymbolA[p],"")==0) {
