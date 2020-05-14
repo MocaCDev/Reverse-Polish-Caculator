@@ -1,4 +1,3 @@
 #Libs to link:
 # -L/usr/include/readline -L/usr/share/readline -I/usr/include/readline
-# we can't run ./main..
 run = 'gcc --version;  make main.c CLA.c run'

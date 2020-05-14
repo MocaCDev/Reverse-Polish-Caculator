@@ -13,7 +13,9 @@ CTALENT: Contributor/Co-Founder
 
 # LANGUAGE, VERSION AND COMPILER INFORMATION
 - Main Information:
-Version: 1.0.1
+Release-Version: 1.0.1
+Recent-Version: 1.0.1
+Updates: 0
 Language: C
 Compiler: GCC
 

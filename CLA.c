@@ -5,6 +5,11 @@
 // Easier way to do this?
 char* F_ARG_OUT = "\n%d %s %d = %d\nReverse Polish Notation: %d %d %s\n";
 
+// To-Do:
+/* 
+	Gives negative response due to integer overflow,
+	fix this
+*/
 #define F_ARG_PRINT(numone,numtwo,symbol)\
 if(strcmp(symbol,"+")==0) {\
 	printf(F_ARG_OUT,numone,symbol,numtwo,numone+numtwo,numone,numtwo,symbol);\
@@ -12,7 +17,7 @@ if(strcmp(symbol,"+")==0) {\
 } else if(strcmp(symbol,"-")==0) {\
 	printf(F_ARG_OUT,numone,symbol,numtwo,numone-numtwo,numone,numtwo,symbol);\
 	exit(EXIT_SUCCESS);\
-} else if(strcmp(symbol,"mult")==0) {\
+} else if(strcmp(symbol,"m")==0) {\
 	printf(F_ARG_OUT,numone,"*",numtwo,numone*numtwo,numone,numtwo,"*");\
 	exit(EXIT_SUCCESS);\
 } else if(strcmp(symbol,"%")==0) {\
@@ -44,10 +49,10 @@ void parse_args(int ammount,char** args) {
 				exit(0);
 			} else if(strcmp(args[i],"--fe")==0)/*fe as in fast equation*/ {
 				/* 
-					-f x1 x2 symbol
+					--fe x1 x2 symbol
 				*/
 				if(strcmp(args[i+1],"--help")==0) {
-					printf("\t-f x1 x2 symbol\n\tx1 and x2 will be the two numbers in the operations\n\tsymbol will be the action with the 2 numbers\n\tThe symbols are as follows:\n\t\t+,-,%%,/\n\tWhen multiplying with -f, use the word mult\n");
+					printf("\t--fe x1 x2 symbol\n\tx1 and x2 will be the two numbers in the operations\n\tsymbol will be the action with the 2 numbers\n\tThe symbols are as follows:\n\t\t+,-,%%,/\n\tWhen multiplying with --fe, use the word mult\n");
 					exit(EXIT_SUCCESS);
 				} else {
 					if(args[i+1] && args[i+2] && !(atoi(args[i+1])==0 && atoi(args[i+2]) == 0)) {

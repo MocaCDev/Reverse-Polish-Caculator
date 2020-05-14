@@ -15,63 +15,55 @@
 #include <stdbool.h> // Needed for IsNegative
 #include "CLA.h"
 
-/***********************************************************
-*
-* I fixed the -10 bug.
-*
-* When should we release this to repl.it?
-*
-* @CodeLongAndPros:
-*  - Are we gonna make it to where the user can multiply mutliple numbers? Or just leave it to adding and subtracting multiple number...
-***********************************************************/
-
-
 /* 
  * this is for STACK_SIZE and the index size of 
  * the arrays...don't get this mixed up with 
  * the max size of the integer being HELD!!!
  */
 uint16_t MAX_SIZE=65536-1;
+
+// Ideals for the array sizes(goes off of MAX_SIZE)
 static int AddSize=100;
 #define STACK_SIZE 100 // 100 will be the comfy zone
 
+// Ideals for printf statements
 #define RESET "\033[0m"
 char* OUTPUT = "\n\t[OUTPUT]>> %d\n\n";
 char* INPUT = "\033[5;32m[INPUT] >> \033[0m";
 
-/* 
-	To-Do:
-		- p is used as the index of many things in the application.
-		- We should add a new variable to work with the other arrays so we don't run into any possible errors with p and with getting certain indexes of arrays.
-*/
+// Ideals for Arrays
 static int p = 0;
 static int rr = 2;
 static int Ammount; // used to keep track on how many numbers are inputted
 
-/* 
-	2 arrays are needed, else it would be impossible trying to find
-	the index of the symbol and the two numbers in one array.
-*/
+// Arrays needed to store information
 static float *Number;// holding both numbers..
 static char *SymbolA; // holding the symbol for 2 number equations
 static char *SymbolB; // holding symbol for 2+ number equations
 static float *stack;
 
+// Ideals for checking if there is a muti numer equation(EX: 1 + 1 + 1 + 1)
 static bool IsMulti=false;// false by default..we are assuming there are just 2 numbers
+static bool WasMulti=false;// this will be used for the "p"
 static float *MultiEqStack; // Used for macro below
 static int MES=0; // used for MultiEqStack
 
+// Macro checking to see if there is a multi equation.
 #define MultiEquation(ammount,symbol)\
-double TOTAL;\
+double TOTAL=1;\
 if(ammount>2) {\
 	IsMulti=true;\
 	for(int i = 0; i < ammount; i++) {\
 		if(strcmp(symbol,"+")==0) {\
 			TOTAL+=Number[i];\
+			if(i == ammount-1) TOTAL--;\
 		} else if(strcmp(symbol,"-")==0) {\
 			if(i<1) {TOTAL=Number[i];}\
 			TOTAL-=Number[i+1];\
-		}/*@CodeLongAndPros: Should we try to make it to where they can input multiple numbers and divide/multiply?*/\
+		} else if(strcmp(symbol,"*")==0) {\
+			TOTAL = TOTAL * Number[i];\
+		}\
+		/* Division can't be done :( */\
 		memset(&Number[i],0,sizeof(float));\
 	}\
 	MultiEqStack[MES]=TOTAL;\
@@ -87,15 +79,16 @@ if(ammount>2) {\
 	}\
 	/*DO NOT EDIT, THIS IS TO MAKE SURE THE TWO STACKS DON'T RUN INTO EACH OTHER*/\
 	p-=ammount;\
+	/* If the user wants to print the previous value, we need to check if the last equation had
+	multiple numbers or not */\
+	WasMulti=true;\
 }
 
-/* 
-	
-*/
-
+// Ideals to check and see if inputted number is negative
 static bool IsNegative=false; // false by default
 static bool RUN=true; // true by default until the STACK_SIZE is above MAX_SIZE
 
+// Clearing all allocated memory stored in the arrays
 void cs() {
 	// They are all pointers..we can now just use "free" on them
 	free(stack);
@@ -105,6 +98,9 @@ void cs() {
 	free(MultiEqStack);
 	p=0;
 }
+
+// Pushing answer of equation onto the stack.
+// Function also re-allocates memory for the arrays if STACK_SIZE is reached
 int push(int val) {
   if (p < AddSize) {
 		if(!(IsMulti)) {
@@ -146,6 +142,8 @@ int push(int val) {
 		}
 	}
 }
+
+// Showing information about the added information from last equation
 void dump() {
 	if(IsMulti) {
 		printf("\n\tMULTI EQUATION\n\t----------------------\n\tValue\tIndex\tSymbol\n");
@@ -176,23 +174,17 @@ void dump() {
 		}
 	}
 }
+
+// Accessing last inputted number that was previously put onto the stack
 int pop() {
 	memset(&stack[p],0,sizeof(double));
-	
-	// To-Do: Work on if-else statement that makes the outputted number more accurate
+
 	return stack[(--p)];
-	
-	/*
-		if (!(IsNegative)) return stack[(--p)] *-1; may work
-		Ran into the same thing I did last night..lol
-	*/
-	/*
-	if( !(IsNegative)) return stack[(--p)] *-1;
-	else return stack[(--p)];*/
 }
 
+// Printing the welcome menu, as well as simple instructions on how the calculator works
 void Menu() {
-	printf("%s%s\n","\033[3;36m\t\t=======  Reverse Polish Calc  =======\n\t\t\t   CodeLongAndPros, CTALENT\033[0;0m\n\n\t\tHOW TO USE:\n\033[3;33m\t\tEnter any number, then press enter\n\t\tAfter your second number, press enter, then give it \n\t\ta symbol(+,-,*,%,/)\n\t\tTYPE \"o\" to see the equation\n\t\tType \"f\" to see Index Storage\n\t\tType \"v\" to Square Root a number\n\t\tAdditonal commands:\n\t\tp: Print the top value off the stack, without popping \n\t\tit off\n\n\t\t\033[0mWant a faster way to get just a fast and easy\n\t\tequation out of the way?\n\t\t\033[3;33mUse: ./main.o -fe x1 x2 symbol:\n\t\tx1 and x2 are both going to be the numbers going into the equation.\n\t\tThe symbol will be one of the following:\n\t\t+,-,%,/ and mult.\n\t\tCommand Example: ./main.o -fe 50 50 mult, would return value of \n\t\t50 * 50", RESET);
+	printf("%s%s\n","\033[3;36m\t\t=======  Reverse Polish Calc  =======\n\t\t\t   CodeLongAndPros, CTALENT\033[0;0m\n\n\t\tHOW TO USE:\n\033[3;33m\t\tEnter any number, then press enter\n\t\tAfter your second number, press enter, then give it \n\t\ta symbol(+,-,*,%,/)\n\t\tTYPE \"o\" to see the equation\n\t\tType \"f\" to see Index Storage\n\t\tType \"v\" to Square Root a number\n\t\tAdditonal commands:\n\t\tp: Print the top value off the stack, without popping \n\t\tit off\n\n\t\t\033[0mWant a faster way to get just a fast and easy\n\t\tequation out of the way?\n\t\t\033[3;33mUse: ./main.o --fe x1 x2 symbol:\n\t\tx1 and x2 are both going to be the numbers going into the equation.\n\t\tThe symbol will be one of the following:\n\t\t+,-,%,/ and mult.\n\t\tCommand Example: ./main.o --fe 50 50 mult, would return value of \n\t\t50 * 50", RESET);
 
 	printf("\n\n%s\n", 
 
@@ -204,6 +196,7 @@ void Menu() {
 	);
 }
 
+// Running the application
 int main(int argc, char** argv) {
 
 	// Allocating memory for arrays
@@ -291,7 +284,8 @@ int main(int argc, char** argv) {
 				}
 				IsNegative=false;
 
-			} else if (strcmp(input, "v") == 0) { // I want dc comatiblaity. Look at dc.man
+			} else if (strcmp(input, "v") == 0) {
+
 				printf(OUTPUT, push(sqrt(pop())));
 
 				strcpy(&SymbolA[p],"_S"); // _S as in SquareRoot
@@ -317,7 +311,12 @@ int main(int argc, char** argv) {
 
 			} else if (strcmp(input, "p") == 0) {
 				
-				if(!(IsMulti)) printf(OUTPUT, push(pop()));
+				if(!(WasMulti)) {
+					printf(OUTPUT,push(pop()));
+				} else {
+					printf("\n\n\t[OUTPUT]>> %.0f\n\n",MultiEqStack[MES-1]);
+					WasMulti=false;
+				}
 
 			} else if (strcmp(input, "cs") == 0) {
 
@@ -327,6 +326,14 @@ int main(int argc, char** argv) {
 
 				printf("\n\t[OUTPUT]>> %d\n\n", pop());
 
+			} else if(strcmp(input, "fe")==0) {
+				if(MES>0) {
+					IsMulti=true;
+					dump();
+					IsMulti=false;
+				} else {
+					dump();
+				}
 			} else if(strcmp(input,"o") == 0) {
 				
 				if(strcmp(&SymbolA[p],"")==0) {
@@ -346,9 +353,9 @@ int main(int argc, char** argv) {
 			else if (*input != EOF && isdigit(*input)!=0) {
 				ALG:
 				/*
-					* We're just gonna go off of Ammount..using the index of p got confusing when getting into
+					We're just gonna go off of Ammount..using the index of p got confusing when getting into
 					the MultiEqStack array..
-					*/
+				*/
 				if(IsMulti) {
 					Number[Ammount]=atoi(input);
 				} else {
@@ -356,11 +363,6 @@ int main(int argc, char** argv) {
 					push(Number[Ammount]);
 				}
 				++Ammount;
-				/*
-				if(Ammount<=2) {
-					Number[p]=atoi(input);
-					push(Number[p]);
-				}*/
 			} else {
 				// It could be a negative
 				if(strlen(input)>1 && input[0]=='-'&& isdigit(input[1])) {
