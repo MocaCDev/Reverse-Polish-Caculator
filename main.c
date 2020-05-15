@@ -86,10 +86,19 @@ if(ammount>2) {\
 
 // Ideals to check and see if inputted number is negative
 static bool IsNegative=false; // false by default
+static bool WasNegative=false; // true if IsNegative is true
 static bool RUN=true; // true by default until the STACK_SIZE is above MAX_SIZE
 
 // Clearing all allocated memory stored in the arrays
 void cs() {
+
+	if(!(RUN)) {
+		if(IsMulti||WasMulti) {
+			printf("\t\033[3;33mNOTE:%s Deleting %d of %d items from \033[4mMulti Equation stack%s\n",RESET,MES,MES,RESET);
+		}
+		if(p>0) printf("\t\033[3;33mNOTE:%s Deleting %d of %d from \033[4mNormal Stack\n%s\n",RESET,p,p,RESET);
+	}
+
 	// They are all pointers..we can now just use "free" on them
 	free(stack);
 	free(Number);
@@ -129,11 +138,10 @@ int push(int val) {
 		}
 	}
 
-	// Temporary fix..
-	if(stack[p-1] > 0 && !(IsNegative)) {
-		return abs(val);
+	if(stack[p-1] > 0 && (IsNegative)) {
+		return val;
 	} else {
-		if(stack[p-1] < 0 && (IsNegative)) {
+		if(stack[p] < 0 && !(IsNegative)&&!(WasNegative)) {
 			cs();
 			printf("\n\t\033[0;31mCalculator overflow error:\n\tThat integer value was above 64-bits...\n\tCalculator reset success%s\n",RESET);
 			return 0;
@@ -145,32 +153,41 @@ int push(int val) {
 
 // Showing information about the added information from last equation
 void dump() {
-	if(IsMulti) {
-		printf("\n\tMULTI EQUATION\n\t----------------------\n\tValue\tIndex\tSymbol\n");
-		for(int i = 0; i < MES; i++) {
-			printf("\t%.0f\t\t%d\t\t%c\n",MultiEqStack[i],i,SymbolB[i]);
-		}
-		printf("\t----------------------\n\n");
-	} else if(!(IsMulti)) {
-		if(p>0){
-			printf("\t---------------------------\n");
-			printf("\t\t%s\t%s\t%s\n", "Value", "Index","Symbol");
-			for( int i = 0; i < p; ++i) {
-				/* 
-					_X means the operation took place, just has no symbol to the equation
-				*/
-				if(!(strcmp(&SymbolA[i+1],"")==0)) {
-					printf("\t\t%6.0f\t%5d\t\t%c\n", stack[i], i,SymbolA[i+1]);
-					}
-				else {
-					printf("\t\t%6.0f\t%5d\t\t%s\n",stack[i],i,"_X");
-				}
+	if(RUN) {
+		if(IsMulti||WasMulti) {
+			printf("\n\tMULTI EQUATION\n\t----------------------\n\tValue\tIndex\tSymbol\n");
+			for(int i = 0; i < MES; i++) {
+				printf("\t%.0f\t\t%d\t\t%c\n",MultiEqStack[i],i,SymbolB[i]);
 			}
-			printf("\t---------------------------\n");
+			printf("\t----------------------\n\n");
+		} else if(!(IsMulti)||!(WasMulti)) {
+			if(p>0){
+				printf("\t---------------------------\n");
+				printf("\t\t%s\t%s\t%s\n", "Value", "Index","Symbol");
+				for( int i = 0; i < p; ++i) {
+					/* 
+						_X means the operation took place, just has no symbol to the equation
+					*/
+					if(!(strcmp(&SymbolA[i+1],"")==0)) {
+						printf("\t\t%6.0f\t%5d\t\t%c\n", stack[i], i,SymbolA[i+1]);
+						}
+					else {
+						printf("\t\t%6.0f\t%5d\t\t%s\n",stack[i],i,"_X");
+					}
+				}
+				printf("\t---------------------------\n");
+			} else {
+				printf("\t--------------------------------\n");
+				printf("\t\t\tStack Empty\n");
+				printf("\t--------------------------------\n");
+			}
+		}
+	} else {
+		if(p>0||MES>0) {
+			cs();
+			printf("Stack cleared. Come back again!\n");
 		} else {
-			printf("\t--------------------------------\n");
-			printf("\t\t\tStack Empty\n");
-			printf("\t--------------------------------\n");
+			printf("Exited with nothing to free. Come back again!\n");
 		}
 	}
 }
@@ -225,7 +242,10 @@ int main(int argc, char** argv) {
 					MES++;dump();
 					IsMulti=false;
 				}
-				IsNegative=false;
+				if(IsNegative) {
+					IsNegative=false;
+					WasNegative=true;
+				}
 
 			}
 			else if (strcmp(input, "-") == 0) {
@@ -245,6 +265,7 @@ int main(int argc, char** argv) {
           dump();
           IsMulti=false;
         }
+				if(IsNegative) WasNegative = true;
 
 			}
 			else if (strcmp(input, "*") == 0) {
@@ -263,8 +284,11 @@ int main(int argc, char** argv) {
 					MES++;
 					dump();
 					IsMulti=false;
-					}
-				IsNegative=false;
+				}
+				if(IsNegative) {
+					IsNegative=false;
+					WasNegative=true;
+				}
 
 			}
        else if (strcmp(input, "/") == 0) {
@@ -282,7 +306,10 @@ int main(int argc, char** argv) {
 					dump();
 					IsMulti=false;
 				}
-				IsNegative=false;
+				if(IsNegative) {
+					IsNegative=false;
+					WasNegative=true;
+				}
 
 			} else if (strcmp(input, "v") == 0) {
 
@@ -290,7 +317,10 @@ int main(int argc, char** argv) {
 
 				strcpy(&SymbolA[p],"_S"); // _S as in SquareRoot
 				Ammount=0;
-				IsNegative=false;
+				if(IsNegative) {
+					IsNegative=false;
+					WasNegative=true;
+				}
 
 			} else if(strcmp(input, "%") == 0) {
 
@@ -365,17 +395,27 @@ int main(int argc, char** argv) {
 					push(Number[Ammount]);
 				}
 				++Ammount;
+			} else if(strcmp(input,"e")==0) {
+				RUN=false;
+				dump();
 			} else {
 				// It could be a negative
-				if(strlen(input)>1 && input[0]=='-'&& isdigit(input[1])) {
+				if(strlen(input)>1 && input[0]=='-'&& atoi(&input[1])!=0) {
 					IsNegative=true;
 					goto ALG;
 				} else {
-					printf("\n\t\033[4;3;31mError: Unexpected -> %s <- in input%s\n\n", input, RESET);
+					if(input[0]=='\0') {
+						printf("\n\t\033[4;3;31mError: Unexpected space in input%s\n\n", RESET);
+					} else printf("\n\t\033[4;3;31mError: Unexpected -> %s <- in input%s\n\n", input, RESET);
 				}
 			}
 
 			if (strlen(input) > 0) add_history(input);
 
+	}
+
+	// This will run since RUN is false and only if the arrays are freed
+	if((int)stack[0]==0&&(int)MultiEqStack[0]==0&&SymbolA[0]==0&&SymbolB[0]==0) {
+		exit(EXIT_SUCCESS);
 	}
 }
