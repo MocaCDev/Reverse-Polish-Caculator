@@ -154,7 +154,7 @@ int push(int val) {
 // Showing information about the added information from last equation
 void dump() {
 	if(RUN) {
-		if(IsMulti||WasMulti) {
+		if(IsMulti) {
 			printf("\n\tMULTI EQUATION\n\t----------------------\n\tValue\tIndex\tSymbol\n");
 			for(int i = 0; i < MES; i++) {
 				printf("\t%.0f\t\t%d\t\t%c\n",MultiEqStack[i],i,SymbolB[i]);
