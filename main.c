@@ -111,11 +111,11 @@ void cs() {
 // Pushing answer of equation onto the stack.
 // Function also re-allocates memory for the arrays if STACK_SIZE is reached
 int push(int val) {
-  if (p < AddSize) {
+  	if (p < AddSize) {
 		if(!(IsMulti)) {
 			stack[p++] = val;
 		}
-  } else {
+  	} else {
 		// Lets just add another 100?
 		if(!(AddSize>MAX_SIZE)) {
 			AddSize+=100;
@@ -254,24 +254,20 @@ int main(int argc, char** argv) {
 				Ammount=0;
 				if(!(IsMulti)) {
 					int temp = pop();
-          int t2 = pop();
-//          IsNegative = (abs(temp) != temp) && (abs(t2) != t2);
-
+          				int t2 = pop();
+					//IsNegative = (abs(temp) != temp) && (abs(t2) != t2);
 					printf(OUTPUT, push(t2 - temp));
 					strcpy(&SymbolA[p],input);
 				} else {
 					strcpy(&SymbolB[MES],input);
-          MES++;
-          dump();
-          IsMulti=false;
-        }
+          				MES++;
+          				dump();
+          				IsMulti=false;
+        			}
 				if(IsNegative) WasNegative = true;
 
 			}
 			else if (strcmp(input, "*") == 0) {
-				/*
-					I need help with this...
-				*/
 
 				MultiEquation(Ammount, "*");
 				Ammount=0;
@@ -291,7 +287,7 @@ int main(int argc, char** argv) {
 				}
 
 			}
-       else if (strcmp(input, "/") == 0) {
+       			else if (strcmp(input, "/") == 0) {
 				
 				MultiEquation(Ammount,"/");
 				Ammount=0;
